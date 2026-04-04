@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Billes Tungstene - Commande rapide</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f5f0e8; --surface:#fff; --border:#ddd6c8;
+  --accent:#4a7c20; --accent2:#6aaa30; --accent3:#eef5e8;
+  --text:#252318; --muted:#8a8272; --cart-bg:#f0ecf8;
+  --dark:#1c1a14;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+header{background:var(--dark);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--accent2);}
+.logo{font-family:"DM Mono",monospace;font-size:13px;letter-spacing:.2em;color:#fff;text-transform:uppercase;}
+.header-sub{font-size:11px;color:#666;letter-spacing:.1em;}
+.layout{display:grid;grid-template-columns:200px 1fr 300px;height:calc(100vh - 52px);}
+
+/* Colonne gauche */
+.left-panel{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;}
+.tabs{display:flex;border-bottom:1px solid var(--border);}
+.tab{flex:1;padding:10px 6px;font-family:"DM Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;text-align:center;cursor:pointer;color:var(--muted);border-bottom:3px solid transparent;transition:all .15s;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--accent3);}
+.left-list{flex:1;overflow-y:auto;padding:8px 0;}
+.list-item{padding:10px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-family:"DM Mono",monospace;font-size:13px;font-weight:500;border-left:3px solid transparent;transition:all .15s;color:var(--text);gap:8px;}
+.list-item:hover{background:var(--accent3);color:var(--accent);}
+.list-item.active{background:var(--accent3);border-left-color:var(--accent);color:var(--accent);}
+.list-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;border:1px solid rgba(0,0,0,.15);}
+.list-badge{font-size:10px;color:var(--muted);white-space:nowrap;}
+.list-item.active .list-badge{color:var(--accent2);}
+.list-sep{height:1px;background:var(--border);margin:4px 12px;}
+
+/* Zone centrale */
+.order-panel{overflow-y:auto;padding:24px 28px;}
+.order-empty{color:var(--muted);font-size:13px;text-align:center;margin-top:80px;line-height:2;}
+
+/* Popup inline */
+.popup{background:var(--surface);border:1px solid var(--accent);border-radius:8px;padding:20px 24px;animation:slideIn .2s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+.popup-header{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.popup-dot{width:18px;height:18px;border-radius:50%;flex-shrink:0;border:1px solid rgba(0,0,0,.15);}
+.popup-title{font-family:"DM Mono",monospace;font-size:20px;font-weight:500;color:var(--accent);}
+.popup-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.sec-label{font-family:"DM Mono",monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+
+/* Grille choix */
+.choice-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+.choice-btn{min-width:52px;height:42px;border:2px solid var(--border);border-radius:4px;background:var(--surface);cursor:pointer;font-family:"DM Mono",monospace;font-size:13px;font-weight:600;color:var(--text);transition:all .15s;padding:0 10px;display:flex;align-items:center;gap:6px;}
+.choice-btn:hover{border-color:var(--accent2);background:var(--accent3);}
+.choice-btn.active{border-color:var(--accent);background:var(--accent);color:#fff;}
+.choice-btn.active .choice-dot{border-color:rgba(255,255,255,.4);}
+.choice-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;border:1px solid rgba(0,0,0,.15);}
+
+/* Conditionnement */
+.conds-grid{display:flex;gap:10px;margin-bottom:20px;}
+.cond-btn{flex:1;border:2px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;padding:10px 8px;text-align:center;transition:all .15s;}
+.cond-btn:hover{border-color:var(--accent2);}
+.cond-btn.active{border-color:var(--accent);background:var(--accent3);}
+.cond-qty{font-family:"DM Mono",monospace;font-size:15px;font-weight:700;color:var(--text);}
+.cond-prix{font-size:11px;color:var(--accent2);margin-top:2px;}
+.cond-btn.active .cond-qty{color:var(--accent);}
+
+/* Quantite */
+.qty-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+.qty-lbl{font-family:"DM Mono",monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);}
+.qty-btn{width:30px;height:30px;border-radius:4px;background:var(--border);border:none;cursor:pointer;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:background .1s;}
+.qty-btn:hover{background:var(--accent);color:#fff;}
+.qty-val{font-family:"DM Mono",monospace;font-size:16px;font-weight:700;min-width:28px;text-align:center;color:var(--accent);}
+
+/* Barre ajout */
+.order-bar{display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px 16px;}
+.order-summary{flex:1;font-size:12px;color:var(--muted);}
+.order-summary strong{color:var(--text);}
+.order-total{font-family:"DM Mono",monospace;font-size:15px;color:var(--accent);font-weight:500;white-space:nowrap;}
+.btn-add{background:var(--accent);color:#fff;border:none;border-radius:4px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s;white-space:nowrap;}
+.btn-add:hover{opacity:.85;}
+.btn-add:disabled{opacity:.3;cursor:not-allowed;}
+
+/* Commandes deja passees */
+.prev-orders{margin-top:14px;}
+.prev-lbl{font-family:"DM Mono",monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.order-line{display:flex;align-items:center;justify-content:space-between;background:var(--accent3);border:1px solid var(--accent2);border-radius:4px;padding:7px 12px;font-size:12px;margin-bottom:4px;}
+.order-line-label{font-family:"DM Mono",monospace;color:var(--accent);font-weight:500;}
+.del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 4px;}
+.del-btn:hover{color:#c0392b;}
+
+/* Panier */
+.cart-panel{background:var(--cart-bg);border-left:1px solid var(--border);display:flex;flex-direction:column;}
+.cart-header{padding:14px 20px;border-bottom:1px solid var(--border);font-family:"DM Mono",monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);display:flex;justify-content:space-between;align-items:center;}
+.cart-count{background:var(--accent);color:#fff;border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;}
+.cart-items{flex:1;overflow-y:auto;padding:12px;}
+.cart-empty{color:var(--muted);font-size:12px;text-align:center;margin-top:40px;line-height:1.8;}
+.cart-item{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.cart-item-info{flex:1;}
+.cart-item-name{font-size:12px;font-weight:600;margin-bottom:2px;color:var(--accent);display:flex;align-items:center;gap:6px;}
+.ci-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;border:1px solid rgba(0,0,0,.12);}
+.cart-item-detail{font-size:11px;color:var(--muted);font-family:"DM Mono",monospace;}
+.cart-item-price{font-family:"DM Mono",monospace;font-size:12px;color:var(--accent);white-space:nowrap;}
+.ci-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 2px;}
+.ci-del:hover{color:#c0392b;}
+.cart-footer{border-top:1px solid var(--border);padding:14px 20px;}
+.cart-total-row{display:flex;justify-content:space-between;margin-bottom:12px;}
+.cart-total-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.cart-total-val{font-family:"DM Mono",monospace;font-size:18px;color:var(--accent);font-weight:500;}
+.btn-valider{width:100%;background:var(--accent);color:#fff;border:none;border-radius:4px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;transition:opacity .15s;}
+.btn-valider:hover{opacity:.85;}
+.btn-valider:disabled{opacity:.3;cursor:not-allowed;}
+
+.fab-cart{display:none;position:fixed;bottom:20px;right:20px;z-index:200;background:var(--accent);color:#fff;border:none;border-radius:30px;padding:13px 20px;font-family:"DM Mono",monospace;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.35);align-items:center;gap:8px;}
+.fab-badge{background:#fff;color:var(--accent);border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700;}
+.cart-overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.6);}
+.cart-overlay.open{display:block;}
+.cart-drawer{position:fixed;bottom:0;left:0;right:0;z-index:301;background:var(--cart-bg);border-top:2px solid var(--accent);border-radius:16px 16px 0 0;max-height:55vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);}
+.cart-drawer.open{transform:translateY(0);}
+.drawer-handle{width:36px;height:4px;border-radius:2px;background:var(--border);margin:10px auto 4px;flex-shrink:0;}
+@media(max-width:900px){.layout{grid-template-columns:170px 1fr;}.cart-panel{display:none;}.fab-cart{display:flex;}}
+@media(max-width:560px){.layout{grid-template-columns:1fr;}.left-panel{display:none;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Billes Tungst&egrave;ne &mdash; Commande rapide</div>
+  <div class="header-sub">Par taille ou par couleur</div>
+</header>
+<div class="layout">
+  <div class="left-panel">
+    <div class="tabs">
+      <div class="tab active" id="tabTaille" onclick="switchTab('taille')">Par taille</div>
+      <div class="tab" id="tabCouleur" onclick="switchTab('couleur')">Par couleur</div>
+    </div>
+    <div class="left-list" id="leftList"></div>
+  </div>
+  <div class="order-panel" id="orderPanel">
+    <div class="order-empty">&larr; S&eacute;lectionnez une taille ou une couleur</div>
+  </div>
+  <div class="cart-panel">
+    <div class="cart-header"><span>Panier</span><span class="cart-count" id="cartCount">0</span></div>
+    <div class="cart-items" id="cartItems"><div class="cart-empty">Panier vide.</div></div>
+    <div class="cart-footer">
+      <div class="cart-total-row"><span class="cart-total-label">Total</span><span class="cart-total-val" id="cartTotal">0,00 &euro;</span></div>
+      <button class="btn-valider" id="btnValider" disabled onclick="window.location.href='checkout.html'">Finaliser</button>
+    </div>
+  </div>
+</div>
+<button class="fab-cart" id="fabCart" onclick="openDrawer()">&#128722; Panier <span class="fab-badge" id="fabBadge">0</span></button>
+<div class="cart-overlay" id="cartOverlay" onclick="closeDrawer()"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="drawer-handle"></div>
+  <div class="cart-header" style="border-radius:0;padding:10px 16px;">
+    <span>Panier</span>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="cart-count" id="drawerCount">0</span>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer">&#x2715;</button>
+    </div>
+  </div>
+  <div id="drawerItems" style="flex:1;overflow-y:auto;padding:12px;"><div class="cart-empty">Panier vide.</div></div>
+  <div class="cart-footer">
+    <div class="cart-total-row"><span class="cart-total-label">Total</span><span class="cart-total-val" id="drawerTotal">0,00 &euro;</span></div>
+    <button class="btn-valider" disabled onclick="window.location.href='checkout.html'">Finaliser</button>
+  </div>
+</div>
+<script>
+var SharedCart = { upsert:function(){}, remove:function(){}, updateBadge:function(){} };
+
+var COULEURS = [
+  {id:"argent",   label:"Argent",      hex:"#b8bcc0"},
+  {id:"blanc",    label:"Blanc",       hex:"#f0f0ec"},
+  {id:"chocolat", label:"Chocolat",    hex:"#7b4f2e"},
+  {id:"cuivre",   label:"Cuivre",      hex:"#b87333"},
+  {id:"mauve",    label:"Mauve",       hex:"#9b72b0"},
+  {id:"nickel",   label:"Nickel",      hex:"#a8a8a0"},
+  {id:"noir",     label:"Noir",        hex:"#2a2a2a"},
+  {id:"ocre",     label:"Ocre",        hex:"#c8a050"},
+  {id:"or",       label:"Or",          hex:"#d4a017"},
+  {id:"orange",   label:"Orange",      hex:"#e86820"},
+  {id:"rose",     label:"Rose",        hex:"#e8709a"},
+  {id:"tungstene",label:"Tungstene",   hex:"#6a6a72"},
+  {id:"vert",     label:"Vert fluo",   hex:"#39e75f"}
+];
+
+var TAILLES = [
+  {val:"1,5", prix:[1.85,4.25,15.25], couleurs:["argent","blanc","chocolat","cuivre","mauve","nickel","noir","ocre","or","orange","rose","tungstene","vert"]},
+  {val:"2,0", prix:[1.85,4.25,15.25], couleurs:["argent","blanc","chocolat","cuivre","mauve","nickel","noir","ocre","or","orange","rose","tungstene","vert"]},
+  {val:"2,5", prix:[2.10,4.60,16.40], couleurs:["argent","blanc","chocolat","cuivre","mauve","nickel","noir","ocre","or","orange","rose","tungstene","vert"]},
+  {val:"2,8", prix:[2.10,4.60,16.40], couleurs:["argent","blanc","chocolat","cuivre","mauve","nickel","noir","ocre","or","orange","rose","tungstene","vert"]},
+  {val:"3,0", prix:[2.10,4.60,16.40], couleurs:["argent","blanc","chocolat","cuivre","mauve","nickel","noir","ocre","or","orange","rose","tungstene","vert"]},
+  {val:"3,2", prix:[2.30,5.00,18.00], couleurs:["argent","blanc","chocolat","cuivre","mauve","nickel","noir","ocre","or","orange","rose","tungstene","vert"]},
+  {val:"3,5", prix:[2.30,5.00,18.00], couleurs:["argent","blanc","chocolat","cuivre","mauve","nickel","noir","ocre","or","orange","rose","tungstene","vert"]},
+  {val:"4,0", prix:[2.50,5.60,20.00], couleurs:["argent","blanc","cuivre","nickel","noir","or","orange","tungstene","vert"]},
+  {val:"4,6", prix:[3.50,7.50,28.00], couleurs:["or","cuivre"]},
+  {val:"5,5", prix:[4.70,11.00,43.00],couleurs:["or"]}
+];
+
+var COND_LABELS = ["x10","x25","x100"];
+var cart = [];
+var currentTab = "taille";
+var activeKey = null;
+var selChoice = null;
+var selCond = null;
+var selQty = 1;
+
+function getCouleur(id) { for(var i=0;i<COULEURS.length;i++) if(COULEURS[i].id===id) return COULEURS[i]; return null; }
+function getTaille(val) { for(var i=0;i<TAILLES.length;i++) if(TAILLES[i].val===val) return TAILLES[i]; return null; }
+
+function switchTab(tab) {
+  currentTab = tab;
+  activeKey = null; selChoice = null; selCond = null; selQty = 1;
+  document.getElementById("tabTaille").className = "tab" + (tab==="taille"?" active":"");
+  document.getElementById("tabCouleur").className = "tab" + (tab==="couleur"?" active":"");
+  buildList();
+  var _oe = document.getElementById("orderPanel");
+  _oe.innerHTML = "";
+  var _d = document.createElement("div"); _d.className = "order-empty";
+  _d.textContent = "← Sélectionnez une " + (tab==="taille" ? "taille" : "couleur");
+  _oe.appendChild(_d);
+}
+
+function buildList() {
+  var el = document.getElementById("leftList");
+  el.innerHTML = "";
+  if (currentTab === "taille") {
+    TAILLES.forEach(function(t) {
+      var n = cartCountForKey("t:"+t.val);
+      var div = document.createElement("div");
+      div.className = "list-item" + (activeKey==="t:"+t.val?" active":"");
+      div.setAttribute("data-key", "t:"+t.val);
+      var span = document.createElement("span"); span.textContent = t.val+" mm";
+      var badge = document.createElement("span"); badge.className="list-badge";
+      badge.id = "badge-t:"+t.val;
+      badge.textContent = n>0 ? n+" art." : t.couleurs.length+" col.";
+      div.appendChild(span); div.appendChild(badge);
+      div.addEventListener("click", function(){ selectItem(this.getAttribute("data-key")); });
+      el.appendChild(div);
+    });
+  } else {
+    COULEURS.forEach(function(c) {
+      var n = cartCountForKey("c:"+c.id);
+      var div = document.createElement("div");
+      div.className = "list-item" + (activeKey==="c:"+c.id?" active":"");
+      div.setAttribute("data-key", "c:"+c.id);
+      var dot = document.createElement("span"); dot.className="list-dot";
+      dot.style.background = c.hex;
+      var span = document.createElement("span"); span.textContent = c.label; span.style.flex="1";
+      var badge = document.createElement("span"); badge.className="list-badge";
+      badge.id = "badge-c:"+c.id;
+      // Compter tailles disponibles pour cette couleur
+      var nbTailles = TAILLES.filter(function(t){ return t.couleurs.indexOf(c.id)!==-1; }).length;
+      badge.textContent = n>0 ? n+" art." : nbTailles+" t.";
+      div.appendChild(dot); div.appendChild(span); div.appendChild(badge);
+      div.addEventListener("click", function(){ selectItem(this.getAttribute("data-key")); });
+      el.appendChild(div);
+    });
+  }
+}
+
+function cartCountForKey(key) {
+  return cart.filter(function(x){ return x.groupKey===key; }).length;
+}
+
+function selectItem(key) {
+  if (activeKey === key) return;
+  activeKey = key; selChoice = null; selCond = null; selQty = 1;
+  document.querySelectorAll(".list-item").forEach(function(el){ el.classList.remove("active"); });
+  var mi = document.querySelector("[data-key=\""+key+"\"]");
+  if (mi) mi.classList.add("active");
+  renderPopup();
+}
+
+function renderPopup() {
+  var panel = document.getElementById("orderPanel");
+  panel.innerHTML = "";
+  if (!activeKey) return;
+
+  var isTaille = activeKey.indexOf("t:") === 0;
+  var mainVal = activeKey.substring(2);
+
+  var popup = document.createElement("div"); popup.className="popup";
+
+  // Header
+  var header = document.createElement("div"); header.className="popup-header";
+  if (isTaille) {
+    var t = getTaille(mainVal);
+    var titleEl = document.createElement("div"); titleEl.className="popup-title";
+    titleEl.textContent = t.val+" mm";
+    var subEl = document.createElement("div"); subEl.className="popup-sub";
+    subEl.textContent = t.couleurs.length+" couleurs disponibles";
+    var hText = document.createElement("div");
+    hText.appendChild(titleEl); hText.appendChild(subEl);
+    header.appendChild(hText);
+  } else {
+    var c = getCouleur(mainVal);
+    var dot = document.createElement("span"); dot.className="popup-dot";
+    dot.style.background = c.hex; dot.style.width="24px"; dot.style.height="24px";
+    var hText = document.createElement("div");
+    var titleEl = document.createElement("div"); titleEl.className="popup-title"; titleEl.textContent=c.label;
+    var nbT = TAILLES.filter(function(t){ return t.couleurs.indexOf(c.id)!==-1; }).length;
+    var subEl = document.createElement("div"); subEl.className="popup-sub"; subEl.textContent=nbT+" tailles disponibles";
+    hText.appendChild(titleEl); hText.appendChild(subEl);
+    header.appendChild(dot); header.appendChild(hText);
+  }
+  popup.appendChild(header);
+
+  // Choix (couleurs OU tailles)
+  var sl1 = document.createElement("div"); sl1.className="sec-label";
+  sl1.textContent = isTaille ? "Couleur" : "Diametre (mm)";
+  popup.appendChild(sl1);
+  var cg = document.createElement("div"); cg.className="choice-grid";
+
+  if (isTaille) {
+    var t = getTaille(mainVal);
+    t.couleurs.forEach(function(cid) {
+      var col = getCouleur(cid); if (!col) return;
+      var btn = document.createElement("button");
+      btn.className = "choice-btn" + (selChoice===cid?" active":"");
+      btn.style.minWidth = "auto";
+      var dot = document.createElement("span"); dot.className="choice-dot"; dot.style.background=col.hex;
+      var lbl = document.createElement("span"); lbl.textContent=col.label;
+      btn.appendChild(dot); btn.appendChild(lbl);
+      (function(id){ btn.addEventListener("click", function(){ selChoice=id; selCond=null; renderPopup(); }); })(cid);
+      cg.appendChild(btn);
+    });
+  } else {
+    var c = getCouleur(mainVal);
+    TAILLES.forEach(function(t) {
+      if (t.couleurs.indexOf(c.id)===-1) return;
+      var btn = document.createElement("button");
+      btn.className = "choice-btn" + (selChoice===t.val?" active":"");
+      btn.textContent = t.val;
+      (function(v){ btn.addEventListener("click", function(){ selChoice=v; selCond=null; renderPopup(); }); })(t.val);
+      cg.appendChild(btn);
+    });
+  }
+  popup.appendChild(cg);
+
+  // Prix du conditionnement selon la taille active
+  var prix;
+  if (isTaille) {
+    prix = getTaille(mainVal).prix;
+  } else {
+    prix = selChoice ? getTaille(selChoice).prix : [0,0,0];
+  }
+
+  // Conditionnement
+  var sl2 = document.createElement("div"); sl2.className="sec-label"; sl2.textContent="Conditionnement";
+  popup.appendChild(sl2);
+  var condGrid = document.createElement("div"); condGrid.className="conds-grid";
+  [{label:"x10",i:0},{label:"x25",i:1},{label:"x100",i:2}].forEach(function(cd) {
+    var btn = document.createElement("div");
+    btn.className = "cond-btn" + (cd.i===selCond?" active":"");
+    btn.style.cursor = "pointer";
+    var qd = document.createElement("div"); qd.className="cond-qty"; qd.textContent=cd.label;
+    var pd = document.createElement("div"); pd.className="cond-prix";
+    pd.textContent = prix[cd.i]>0 ? prix[cd.i].toFixed(2).replace(".",",")+"\u00A0\u20AC" : "\u2014";
+    btn.appendChild(qd); btn.appendChild(pd);
+    (function(idx){ btn.addEventListener("click", function(){ selCond=idx; renderPopup(); }); })(cd.i);
+    condGrid.appendChild(btn);
+  });
+  popup.appendChild(condGrid);
+
+  // Quantite
+  var qRow = document.createElement("div"); qRow.className="qty-row";
+  var qLbl = document.createElement("span"); qLbl.className="qty-lbl"; qLbl.textContent="Nb sachets :";
+  var qMinus = document.createElement("button"); qMinus.className="qty-btn"; qMinus.textContent="\u2212";
+  var qVal = document.createElement("span"); qVal.className="qty-val"; qVal.textContent=String(selQty);
+  var qPlus = document.createElement("button"); qPlus.className="qty-btn"; qPlus.textContent="+";
+  qMinus.addEventListener("click", function(){ if(selQty>1){ selQty--; renderPopup(); } });
+  qPlus.addEventListener("click", function(){ selQty++; renderPopup(); });
+  qRow.appendChild(qLbl); qRow.appendChild(qMinus); qRow.appendChild(qVal); qRow.appendChild(qPlus);
+  popup.appendChild(qRow);
+
+  // Barre ajout
+  var bar = document.createElement("div"); bar.className="order-bar";
+  var sumDiv = document.createElement("div"); sumDiv.className="order-summary";
+  var totDiv = document.createElement("div"); totDiv.className="order-total";
+  var addBtn = document.createElement("button"); addBtn.className="btn-add"; addBtn.textContent="+ Ajouter";
+  var ready = selChoice && selCond !== null;
+  if (ready) {
+    var taillePrix = isTaille ? prix[selCond] : getTaille(selChoice).prix[selCond];
+    var total = selQty * taillePrix;
+    var choiceLabel = isTaille ? getCouleur(selChoice).label : selChoice+" mm";
+    sumDiv.innerHTML = "";
+    var _s = document.createElement("strong");
+    _s.textContent = isTaille ? mainVal+" mm" : getCouleur(mainVal).label;
+    sumDiv.appendChild(_s);
+    sumDiv.appendChild(document.createTextNode(" · "+choiceLabel+" · "+selQty+"× "+COND_LABELS[selCond]));
+    totDiv.textContent = total.toFixed(2).replace(".",",")+"\u00A0\u20AC";
+    addBtn.disabled = false;
+    addBtn.addEventListener("click", addToCart);
+  } else {
+    sumDiv.textContent = "S\u00E9lectionnez "+(isTaille?"une couleur":"un diam\u00E8tre")+" et un conditionnement";
+    totDiv.textContent = "\u2014\u00A0\u20AC";
+    addBtn.disabled = true;
+  }
+  bar.appendChild(sumDiv); bar.appendChild(totDiv); bar.appendChild(addBtn);
+  popup.appendChild(bar);
+
+  // Articles deja passes pour cette cle
+  var orders = cart.filter(function(x){ return x.groupKey===activeKey; });
+  if (orders.length) {
+    var pl = document.createElement("div"); pl.className="prev-orders";
+    var plbl = document.createElement("div"); plbl.className="prev-lbl"; plbl.textContent="Command\u00E9s";
+    pl.appendChild(plbl);
+    orders.forEach(function(item) {
+      var line = document.createElement("div"); line.className="order-line";
+      var lbl = document.createElement("span"); lbl.className="order-line-label"; lbl.textContent=item.label;
+      var right = document.createElement("div"); right.style.cssText="display:flex;align-items:center;gap:10px;";
+      var px = document.createElement("span"); px.style.fontSize="11px"; px.style.fontFamily="monospace"; px.style.color="var(--accent2)";
+      px.textContent = item.prix.toFixed(2).replace(".",",")+"\u00A0\u20AC";
+      var db = document.createElement("button"); db.className="del-btn"; db.textContent="\u2715";
+      db.setAttribute("data-key", item.key);
+      db.addEventListener("click", function(){ removeItem(this.getAttribute("data-key")); });
+      right.appendChild(px); right.appendChild(db);
+      line.appendChild(lbl); line.appendChild(right);
+      pl.appendChild(line);
+    });
+    popup.appendChild(pl);
+  }
+
+  panel.appendChild(popup);
+}
+
+function addToCart() {
+  if (!activeKey || !selChoice || selCond === null) return;
+  var isTaille = activeKey.indexOf("t:") === 0;
+  var mainVal = activeKey.substring(2);
+  var taille = isTaille ? mainVal : selChoice;
+  var couleurId = isTaille ? selChoice : mainVal;
+  var t = getTaille(taille);
+  var col = getCouleur(couleurId);
+  var prixUnit = t.prix[selCond];
+  var key = couleurId+"-"+taille+"-"+selCond;
+  var label = col.label+" \u00D8"+taille+"mm "+selQty+"\u00D7"+COND_LABELS[selCond];
+  var total = selQty * prixUnit;
+
+  cart = cart.filter(function(x){ return x.key!==key; });
+  cart.push({key:key, groupKey:activeKey, couleurId:couleurId, hex:col.hex,
+             taille:taille, condIdx:selCond, sachets:selQty,
+             label:label, prix:total, prixUnit:prixUnit});
+
+  SharedCart.upsert("billes", key, col.label+" \u00D8"+taille+"mm", selQty+"\u00D7"+COND_LABELS[selCond], selQty, prixUnit, col.hex);
+
+  updateBadge(activeKey);
+  selChoice = null; selCond = null; selQty = 1;
+  renderPopup();
+  renderCart();
+}
+
+function removeItem(key) {
+  cart = cart.filter(function(x){ return x.key!==key; });
+  SharedCart.remove("billes__"+key);
+  if (activeKey) { updateBadge(activeKey); renderPopup(); }
+  renderCart();
+}
+
+function updateBadge(key) {
+  var el = document.getElementById("badge-"+key);
+  if (!el) return;
+  var n = cartCountForKey(key);
+  if (n > 0) { el.textContent = n+" art."; return; }
+  if (key.indexOf("t:")===0) {
+    var t = getTaille(key.substring(2));
+    el.textContent = t ? t.couleurs.length+" col." : "";
+  } else {
+    var cid = key.substring(2);
+    var nb = TAILLES.filter(function(t){ return t.couleurs.indexOf(cid)!==-1; }).length;
+    el.textContent = nb+" t.";
+  }
+}
+
+function renderCart() {
+  var el=document.getElementById("cartItems"), cEl=document.getElementById("cartCount");
+  var tEl=document.getElementById("cartTotal"), bEl=document.getElementById("btnValider");
+  var dEl=document.getElementById("drawerItems"), dCEl=document.getElementById("drawerCount");
+  var dTEl=document.getElementById("drawerTotal"), fab=document.getElementById("fabBadge");
+  if (!cart.length) {
+    var emptyDiv = document.createElement("div"); emptyDiv.className="cart-empty"; emptyDiv.textContent="Panier vide.";
+    el.innerHTML=""; el.appendChild(emptyDiv.cloneNode(true));
+    dEl.innerHTML=""; dEl.appendChild(emptyDiv.cloneNode(true));
+    cEl.textContent="0"; dCEl.textContent="0"; fab.textContent="0";
+    tEl.textContent="0,00 \u20AC"; dTEl.textContent="0,00 \u20AC";
+    bEl.disabled=true; return;
+  }
+  var total=0;
+  var frag=document.createDocumentFragment();
+  cart.forEach(function(item) {
+    total+=item.prix;
+    var div=document.createElement("div"); div.className="cart-item";
+    var info=document.createElement("div"); info.className="cart-item-info";
+    var nm=document.createElement("div"); nm.className="cart-item-name";
+    var dot=document.createElement("span"); dot.className="ci-dot"; dot.style.background=item.hex;
+    var lbl=document.createElement("span"); lbl.textContent=item.label;
+    nm.appendChild(dot); nm.appendChild(lbl);
+    var dt=document.createElement("div"); dt.className="cart-item-detail";
+    dt.textContent=item.sachets+" sachet(s)";
+    info.appendChild(nm); info.appendChild(dt);
+    var right=document.createElement("div"); right.style.cssText="display:flex;align-items:center;gap:6px;";
+    var px=document.createElement("span"); px.className="cart-item-price"; px.textContent=item.prix.toFixed(2)+"\u00A0\u20AC";
+    var db=document.createElement("button"); db.className="ci-del"; db.textContent="\u2715";
+    db.setAttribute("data-key",item.key);
+    db.addEventListener("click",function(){ removeItem(this.getAttribute("data-key")); });
+    right.appendChild(px); right.appendChild(db);
+    div.appendChild(info); div.appendChild(right);
+    frag.appendChild(div);
+  });
+  var ts=total.toFixed(2).replace(".",",")+"\u00A0\u20AC";
+  el.innerHTML=""; el.appendChild(frag.cloneNode(true));
+  dEl.innerHTML=""; dEl.appendChild(frag.cloneNode(true));
+  cEl.textContent=cart.length; dCEl.textContent=cart.length; fab.textContent=cart.length;
+  tEl.textContent=ts; dTEl.textContent=ts;
+  bEl.disabled=false;
+}
+
+function openDrawer(){ document.getElementById("cartOverlay").classList.add("open"); document.getElementById("cartDrawer").classList.add("open"); }
+function closeDrawer(){ document.getElementById("cartOverlay").classList.remove("open"); document.getElementById("cartDrawer").classList.remove("open"); }
+
+buildList();
+</script>
+</body>
+</html>
