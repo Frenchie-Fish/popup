@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hamecons Kamasan - Commande par modele</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f5f0e8; --surface:#fff; --border:#ddd6c8;
+  --accent:#5a3a8a; --accent2:#7a5aaa; --accent3:#ede0f5;
+  --text:#252318; --muted:#8a8272; --cart-bg:#f0ecf8;
+  --dark:#1c1a14;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+header{background:var(--dark);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--accent2);}
+.logo{font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.2em;color:#fff;text-transform:uppercase;}
+.header-sub{font-size:11px;color:#666;letter-spacing:.1em;}
+.layout{display:grid;grid-template-columns:200px 1fr 300px;height:calc(100vh - 52px);}
+.models-panel{background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;padding:12px 0;}
+.models-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding:8px 16px 12px;}
+.model-grp{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);padding:6px 16px 2px;}
+.model-item{padding:10px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-family:'DM Mono',monospace;font-size:13px;font-weight:500;border-left:3px solid transparent;transition:all .15s;color:var(--text);}
+.model-item:hover{background:var(--accent3);color:var(--accent);}
+.model-item.active{background:var(--accent3);border-left-color:var(--accent);color:var(--accent);}
+.model-badge{font-size:10px;color:var(--muted);}
+.model-sep{height:1px;background:var(--border);margin:6px 16px;}
+.order-panel{overflow-y:auto;padding:24px 28px;}
+.order-empty{color:var(--muted);font-size:13px;text-align:center;margin-top:80px;line-height:2;}
+.model-popup{background:var(--surface);border:1px solid var(--accent);border-radius:8px;padding:20px 24px;animation:slideIn .2s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+.popup-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.popup-model-name{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;color:var(--accent);}
+.popup-model-desc{font-size:12px;color:var(--muted);}
+.sec-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.sizes-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+.size-btn{min-width:52px;height:44px;border:2px solid var(--border);border-radius:4px;background:var(--surface);cursor:pointer;font-family:'DM Mono',monospace;font-size:14px;font-weight:600;color:var(--text);transition:all .15s;padding:0 12px;}
+.size-btn:hover{border-color:var(--accent2);background:var(--accent3);}
+.size-btn.active{border-color:var(--accent);background:var(--accent);color:#fff;}
+.conds-grid{display:flex;gap:10px;margin-bottom:20px;}
+.cond-btn{flex:1;border:2px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;padding:10px 8px;text-align:center;transition:all .15s;}
+.cond-btn:hover{border-color:var(--accent2);}
+.cond-btn.active{border-color:var(--accent);background:var(--accent3);}
+.cond-qty{font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:var(--text);}
+.cond-prix{font-size:11px;color:var(--accent2);margin-top:2px;}
+.cond-btn.active .cond-qty{color:var(--accent);}
+
+.qty-ctrl{display:flex;align-items:center;gap:8px;margin-bottom:20px;}
+.qty-ctrl-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-right:4px;}
+.qty-btn{width:30px;height:30px;border-radius:4px;background:var(--border);border:none;cursor:pointer;font-size:16px;font-weight:700;color:var(--text);transition:background .1s;display:flex;align-items:center;justify-content:center;}
+.qty-btn:hover{background:var(--accent);color:#fff;}
+.qty-val{font-family:'DM Mono',monospace;font-size:16px;font-weight:700;min-width:28px;text-align:center;color:var(--accent);}
+
+.order-bar{display:flex;align-items:center;gap:16px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px 16px;}
+.order-summary{flex:1;font-size:13px;color:var(--muted);}
+.order-summary strong{color:var(--text);}
+.order-total{font-family:'DM Mono',monospace;font-size:16px;color:var(--accent);font-weight:500;white-space:nowrap;}
+.btn-add{background:var(--accent);color:#fff;border:none;border-radius:4px;padding:10px 20px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.05em;transition:opacity .15s;white-space:nowrap;}
+.btn-add:hover{opacity:.85;}
+.btn-add:disabled{opacity:.3;cursor:not-allowed;}
+.model-orders{margin-top:16px;display:flex;flex-direction:column;gap:6px;}
+.order-line{display:flex;align-items:center;justify-content:space-between;background:var(--accent3);border:1px solid var(--accent2);border-radius:4px;padding:7px 14px;font-size:12px;}
+.order-line-label{font-family:'DM Mono',monospace;color:var(--accent);font-weight:500;}
+.del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;transition:color .1s;padding:0 4px;}
+.del-btn:hover{color:#c0392b;}
+.cart-panel{background:var(--cart-bg);border-left:1px solid var(--border);display:flex;flex-direction:column;}
+.cart-header{padding:14px 20px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);display:flex;justify-content:space-between;align-items:center;}
+.cart-count{background:var(--accent);color:#fff;border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;}
+.cart-items{flex:1;overflow-y:auto;padding:12px;}
+.cart-empty{color:var(--muted);font-size:12px;text-align:center;margin-top:40px;line-height:1.8;}
+.cart-item{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.cart-item-info{flex:1;}
+.cart-item-name{font-size:12px;font-weight:600;margin-bottom:2px;color:var(--accent);}
+.cart-item-detail{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;}
+.cart-item-price{font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);white-space:nowrap;}
+.ci-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;transition:color .1s;padding:0 2px;}
+.ci-del:hover{color:#c0392b;}
+.cart-footer{border-top:1px solid var(--border);padding:14px 20px;}
+.cart-total-row{display:flex;justify-content:space-between;margin-bottom:12px;}
+.cart-total-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.cart-total-val{font-family:'DM Mono',monospace;font-size:18px;color:var(--accent);font-weight:500;}
+.btn-valider{width:100%;background:var(--accent);color:#fff;border:none;border-radius:4px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;transition:opacity .15s;}
+.btn-valider:hover{opacity:.85;}
+.btn-valider:disabled{opacity:.3;cursor:not-allowed;}
+.fab-cart{display:none;position:fixed;bottom:20px;right:20px;z-index:200;background:var(--accent);color:#fff;border:none;border-radius:30px;padding:13px 20px;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.35);align-items:center;gap:8px;}
+.fab-badge{background:#fff;color:var(--accent);border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700;}
+.cart-overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.6);}
+.cart-overlay.open{display:block;}
+.cart-drawer{position:fixed;bottom:0;left:0;right:0;z-index:301;background:var(--cart-bg);border-top:2px solid var(--accent);border-radius:16px 16px 0 0;max-height:55vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);}
+.cart-drawer.open{transform:translateY(0);}
+.drawer-handle{width:36px;height:4px;border-radius:2px;background:var(--border);margin:10px auto 4px;flex-shrink:0;}
+@media(max-width:1023px){.side-nav{display:none;}.layout{margin-left:0;grid-template-columns:160px 1fr;}.cart-panel{display:none;}.fab-cart{display:flex;}header{padding-left:16px;}}
+@media(max-width:700px){.layout{grid-template-columns:1fr;}.models-panel{display:none;}.order-panel{padding:14px;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Hame&ccedil;ons Kamasan &mdash; Par mod&egrave;le</div>
+  <div class="header-sub">Mod&egrave;le &rarr; Taille &rarr; Conditionnement</div>
+</header>
+<div class="layout">
+  <div class="models-panel">
+    <div class="models-title">Mod&egrave;les</div>
+    <div id="modelsList"></div>
+  </div>
+  <div class="order-panel" id="orderPanel">
+    <div class="order-empty">&larr; S&eacute;lectionnez un mod&egrave;le pour commencer</div>
+  </div>
+  <div class="cart-panel">
+    <div class="cart-header"><span>Panier</span><span class="cart-count" id="cartCount">0</span></div>
+    <div class="cart-items" id="cartItems"><div class="cart-empty">Panier vide.</div></div>
+    <div class="cart-footer">
+      <div class="cart-total-row"><span class="cart-total-label">Total</span><span class="cart-total-val" id="cartTotal">0,00 &euro;</span></div>
+      <button class="btn-valider" id="btnValider" disabled onclick="window.location.href='checkout.html'">Finaliser</button>
+    </div>
+  </div>
+</div>
+<button class="fab-cart" id="fabCart" onclick="openDrawer()">&#128722; Panier <span class="fab-badge" id="fabBadge">0</span></button>
+<div class="cart-overlay" id="cartOverlay" onclick="closeDrawer()"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="drawer-handle"></div>
+  <div class="cart-header" style="border-radius:0;padding:10px 16px;">
+    <span>Panier</span>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="cart-count" id="drawerCount">0</span>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer">&#x2715;</button>
+    </div>
+  </div>
+  <div id="drawerItems" style="flex:1;overflow-y:auto;padding:12px;"><div class="cart-empty">Panier vide.</div></div>
+  <div class="cart-footer">
+    <div class="cart-total-row"><span class="cart-total-label">Total</span><span class="cart-total-val" id="drawerTotal">0,00 &euro;</span></div>
+    <button class="btn-valider" disabled onclick="window.location.href='checkout.html'">Finaliser</button>
+  </div>
+</div>
+
+<script>
+
+var SharedCart = {
+  upsert: function(){},
+  remove: function(){},
+  updateBadge: function(){}
+};
+
+
+var MODELES = [
+  {id:"B100",  label:"B100",  prix:[1.60,3.60,13.10], tailles:["10","12","14","16"]},
+  {id:"B100G", label:"B100G", prix:[1.70,4.10,15.30], tailles:["10","12","14","16"]},
+  {id:"B100N", label:"B100N", prix:[1.70,4.10,15.30], tailles:["10","12","14","16"]},
+  {id:"B110",  label:"B110",  prix:[1.60,3.60,13.10], tailles:["10","12","14","16"]},
+  {id:"B160",  label:"B160",  prix:[1.60,3.60,13.10], tailles:["6","8","10","12","14","16"]},
+  {id:"B170",  label:"B170",  prix:[1.60,3.60,13.10], tailles:["6","8","10","12","14","16"]},
+  {id:"B175",  label:"B175",  prix:[1.60,3.60,13.10], tailles:["6","8","10","12","14","16"]},
+  {id:"B401",  label:"B401",  prix:[1.60,3.60,13.10], tailles:["8","10","12","14","16","18","20"]},
+  {id:"B402",  label:"B402",  prix:[1.60,3.60,13.10], tailles:["14","16","18"]},
+  {id:"B405",  label:"B405",  prix:[1.60,3.60,13.10], tailles:["8","10","12","14","16","18","20"]},
+  {id:"B410",  label:"B410",  prix:[1.60,3.60,13.10], tailles:["16","18","20","22"]},
+  {id:"B420",  label:"B420",  prix:[1.60,3.60,13.10], tailles:["8","10","12","14","16"]},
+  {id:"B800",  label:"B800",  prix:[1.90,4.20,15.30], tailles:["8","10","12","14"]},
+  {id:"B830",  label:"B830",  prix:[1.90,4.20,15.30], tailles:["8","10","12","14","16"]},
+  {id:"B911",  label:"B911",  prix:[1.90,4.20,15.30], tailles:["10","12","14","16","18","20"]}
+];
+var GROUPES = [
+  {label:"Seches / Nymphes", ids:["B100","B100G","B100N","B110"]},
+  {label:"Wet / Noyees",     ids:["B160","B170","B175"]},
+  {label:"Caddis / Emergentes", ids:["B401","B402","B405","B410","B420"]},
+  {label:"Speciaux",         ids:["B800","B830","B911"]}
+];
+var COND_LABELS = ["x10","x25","x100"];
+var cart = [];
+var activeModele = null;
+var selTaille = null;
+var selCond = null;
+var selQty = 1;
+
+function getModele(id) {
+  for (var i=0;i<MODELES.length;i++) { if (MODELES[i].id===id) return MODELES[i]; }
+  return null;
+}
+function cartForModele(mid) {
+  return cart.filter(function(x){ return x.modele===mid; });
+}
+
+function buildModelsList() {
+  var el = document.getElementById("modelsList");
+  el.innerHTML = "";
+  GROUPES.forEach(function(g) {
+    var sep = document.createElement("div"); sep.className="model-sep"; el.appendChild(sep);
+    var grp = document.createElement("div"); grp.className="model-grp"; grp.textContent=g.label; el.appendChild(grp);
+    g.ids.forEach(function(id) {
+      var m = getModele(id); if (!m) return;
+      var div = document.createElement("div");
+      div.className = "model-item";
+      div.id = "mi-"+id;
+      div.setAttribute("data-id", id);
+      var badge = document.createElement("span");
+      badge.className = "model-badge"; badge.id = "mb-"+id;
+      badge.textContent = m.tailles.length+" t.";
+      var name = document.createElement("span"); name.textContent = m.label;
+      div.appendChild(name); div.appendChild(badge);
+      div.addEventListener("click", function() { selectModele(this.getAttribute("data-id")); });
+      el.appendChild(div);
+    });
+  });
+}
+
+function selectModele(id) {
+  if (activeModele === id) return;
+  activeModele = id;
+  selTaille = null;
+  selCond = null;
+  document.querySelectorAll(".model-item").forEach(function(el){ el.classList.remove("active"); });
+  var mi = document.getElementById("mi-"+id);
+  if (mi) mi.classList.add("active");
+  renderPopup();
+}
+
+function renderPopup() {
+  var m = getModele(activeModele);
+  if (!m) return;
+  var panel = document.getElementById("orderPanel");
+  panel.innerHTML = "";
+
+  var popup = document.createElement("div");
+  popup.className = "model-popup";
+
+  // Header
+  var header = document.createElement("div"); header.className="popup-header";
+  var nameDiv = document.createElement("div");
+  var nameEl = document.createElement("div"); nameEl.className="popup-model-name"; nameEl.textContent=m.label;
+  var descEl = document.createElement("div"); descEl.className="popup-model-desc";
+  descEl.textContent = m.tailles.length+" tailles · "+m.prix[0].toFixed(2).replace(".",",")+" € (x10)";
+  nameDiv.appendChild(nameEl); nameDiv.appendChild(descEl);
+  header.appendChild(nameDiv); popup.appendChild(header);
+
+  // Tailles
+  var sl1 = document.createElement("div"); sl1.className="sec-label"; sl1.textContent="Taille (numéro)";
+  popup.appendChild(sl1);
+  var sg = document.createElement("div"); sg.className="sizes-grid";
+  m.tailles.forEach(function(t) {
+    var btn = document.createElement("button");
+    btn.className = "size-btn" + (t===selTaille?" active":"");
+    btn.textContent = "N°"+t;
+    btn.setAttribute("data-t", t);
+    btn.addEventListener("click", function() { selTaille=this.getAttribute("data-t"); renderPopup(); });
+    sg.appendChild(btn);
+  });
+  popup.appendChild(sg);
+
+  // Conditionnements
+  var sl2 = document.createElement("div"); sl2.className="sec-label"; sl2.textContent="Conditionnement";
+  popup.appendChild(sl2);
+  var cg = document.createElement("div"); cg.className="conds-grid";
+  [{label:"x10",i:0},{label:"x25",i:1},{label:"x100",i:2}].forEach(function(c) {
+    var btn = document.createElement("div");
+    btn.className = "cond-btn" + (c.i===selCond?" active":"");
+    btn.style.cursor = "pointer";
+    var qDiv = document.createElement("div"); qDiv.className="cond-qty"; qDiv.textContent=c.label;
+    var pDiv = document.createElement("div"); pDiv.className="cond-prix";
+    pDiv.textContent = m.prix[c.i].toFixed(2).replace(".",",")+" €";
+    btn.appendChild(qDiv); btn.appendChild(pDiv);
+    (function(idx){
+      btn.addEventListener("click", function() { selCond=idx; renderPopup(); });
+    })(c.i);
+    cg.appendChild(btn);
+  });
+  popup.appendChild(cg);
+
+  // Quantite de sachets
+  var qRow = document.createElement("div"); qRow.className="qty-ctrl";
+  var qLbl = document.createElement("span"); qLbl.className="qty-ctrl-label"; qLbl.textContent="Nb sachets :";
+  var qMinus = document.createElement("button"); qMinus.className="qty-btn"; qMinus.textContent="−";
+  var qVal = document.createElement("span"); qVal.className="qty-val"; qVal.id="selQtyVal"; qVal.textContent=String(selQty);
+  var qPlus = document.createElement("button"); qPlus.className="qty-btn"; qPlus.textContent="+";
+  qMinus.addEventListener("click", function(){ if(selQty>1){ selQty--; renderPopup(); } });
+  qPlus.addEventListener("click", function(){ selQty++; renderPopup(); });
+  qRow.appendChild(qLbl); qRow.appendChild(qMinus); qRow.appendChild(qVal); qRow.appendChild(qPlus);
+  popup.appendChild(qRow);
+
+  // Barre commande
+  var bar = document.createElement("div"); bar.className="order-bar";
+  var sumDiv = document.createElement("div"); sumDiv.className="order-summary";
+  var totDiv = document.createElement("div"); totDiv.className="order-total";
+  var addBtn = document.createElement("button"); addBtn.className="btn-add"; addBtn.textContent="+ Ajouter";
+  if (selTaille && selCond!==null) {
+    sumDiv.innerHTML = "<strong>"+m.label+"</strong> · N°"+selTaille+" · "+COND_LABELS[selCond];
+    totDiv.textContent = (selQty*m.prix[selCond]).toFixed(2).replace(".",",")+" €";
+    addBtn.disabled = false;
+    addBtn.addEventListener("click", addToCart);
+  } else {
+    sumDiv.textContent = "Sélectionnez une taille et un conditionnement";
+    totDiv.textContent = "— €";
+    addBtn.disabled = true;
+  }
+  bar.appendChild(sumDiv); bar.appendChild(totDiv); bar.appendChild(addBtn);
+  popup.appendChild(bar);
+
+  // Articles deja commandes pour ce modele
+  var orders = cartForModele(activeModele);
+  if (orders.length > 0) {
+    var ordLbl = document.createElement("div");
+    ordLbl.style.cssText = "margin-top:14px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;";
+    ordLbl.textContent = "Commandés pour ce modèle";
+    popup.appendChild(ordLbl);
+    var ordList = document.createElement("div"); ordList.className="model-orders";
+    orders.forEach(function(item) {
+      var line = document.createElement("div"); line.className="order-line";
+      var lbl = document.createElement("span"); lbl.className="order-line-label"; lbl.textContent=item.label;
+      var right = document.createElement("div"); right.style.cssText="display:flex;align-items:center;gap:12px;";
+      var prix = document.createElement("span");
+      prix.style.cssText = "font-size:11px;font-family:'DM Mono',monospace;color:var(--accent2);";
+      prix.textContent = item.prix.toFixed(2).replace(".",",")+" €";
+      var del = document.createElement("button"); del.className="del-btn"; del.textContent="✕";
+      del.setAttribute("data-key", item.key);
+      del.addEventListener("click", function() { removeItem(this.getAttribute("data-key")); });
+      right.appendChild(prix); right.appendChild(del);
+      line.appendChild(lbl); line.appendChild(right);
+      ordList.appendChild(line);
+    });
+    popup.appendChild(ordList);
+  }
+
+  panel.appendChild(popup);
+}
+
+function addToCart() {
+  if (!activeModele || selTaille===null || selCond===null) return;
+  var m = getModele(activeModele);
+  var prix = selQty * m.prix[selCond];
+  var qty = [10,25,100][selCond];
+  var key = activeModele+"-"+selTaille+"-"+selCond;
+  var label = m.label+" N°"+selTaille+" "+COND_LABELS[selCond];
+  cart = cart.filter(function(x){ return x.key!==key; });
+  cart.push({key:key, modele:activeModele, taille:selTaille, condIdx:selCond, label:label, prix:prix, qty:qty, sachets:selQty});
+  SharedCart.upsert("kamasan", key, m.label+" · N°"+selTaille, COND_LABELS[selCond], 1, prix, "#5a3a8a");
+  updateModelBadge(activeModele);
+  selTaille = null; selCond = null; selQty = 1;
+  renderPopup();
+  renderCart();
+}
+
+function removeItem(key) {
+  cart = cart.filter(function(x){ return x.key!==key; });
+  
+  if (activeModele) { updateModelBadge(activeModele); renderPopup(); }
+  renderCart();
+}
+
+function updateModelBadge(mid) {
+  var el = document.getElementById("mb-"+mid);
+  if (!el) return;
+  var n = cartForModele(mid).length;
+  var m = getModele(mid);
+  el.textContent = n>0 ? n+" art." : m.tailles.length+" t.";
+}
+
+function renderCart() {
+  var el=document.getElementById("cartItems"), cEl=document.getElementById("cartCount");
+  var tEl=document.getElementById("cartTotal"), bEl=document.getElementById("btnValider");
+  var dEl=document.getElementById("drawerItems"), dCEl=document.getElementById("drawerCount");
+  var dTEl=document.getElementById("drawerTotal"), fab=document.getElementById("fabBadge");
+  if (!cart.length) {
+    var empty='<div class="cart-empty">Panier vide.</div>';
+    el.innerHTML=empty; dEl.innerHTML=empty;
+    cEl.textContent="0"; dCEl.textContent="0"; fab.textContent="0";
+    tEl.textContent="0,00 €"; dTEl.textContent="0,00 €";
+    bEl.disabled=true; return;
+  }
+  var total=0;
+  var frag = document.createDocumentFragment();
+  cart.forEach(function(item) {
+    total += item.prix;
+    var div = document.createElement("div"); div.className="cart-item";
+    var info = document.createElement("div"); info.className="cart-item-info";
+    var nm = document.createElement("div"); nm.className="cart-item-name"; nm.textContent=item.label;
+    var dt = document.createElement("div"); dt.className="cart-item-detail"; dt.textContent=item.sachets+" sachet(s) · "+item.qty+" hameçons";
+    info.appendChild(nm); info.appendChild(dt);
+    var right = document.createElement("div"); right.style.cssText="display:flex;align-items:center;gap:6px;";
+    var px = document.createElement("span"); px.className="cart-item-price"; px.textContent=item.prix.toFixed(2)+" €";
+    var db = document.createElement("button"); db.className="ci-del"; db.textContent="✕";
+    db.setAttribute("data-key", item.key);
+    db.addEventListener("click", function(){ removeItem(this.getAttribute("data-key")); });
+    right.appendChild(px); right.appendChild(db);
+    div.appendChild(info); div.appendChild(right);
+    frag.appendChild(div);
+  });
+  var ts = total.toFixed(2).replace(".",",")+" €";
+  el.innerHTML=""; el.appendChild(frag.cloneNode(true));
+  dEl.innerHTML=""; dEl.appendChild(frag.cloneNode(true));
+  cEl.textContent=cart.length; dCEl.textContent=cart.length; fab.textContent=cart.length;
+  tEl.textContent=ts; dTEl.textContent=ts;
+  bEl.disabled=false;
+}
+
+function openDrawer(){ document.getElementById("cartOverlay").classList.add("open"); document.getElementById("cartDrawer").classList.add("open"); }
+function closeDrawer(){ document.getElementById("cartOverlay").classList.remove("open"); document.getElementById("cartDrawer").classList.remove("open"); }
+
+buildModelsList();
+
+</script>
+</body>
+</html>
